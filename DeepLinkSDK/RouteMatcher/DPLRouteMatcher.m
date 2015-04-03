@@ -3,7 +3,7 @@
 #import "NSString+DPLTrim.h"
 
 static NSString * const DPLRouteParameterPattern = @":[a-zA-Z0-9-_]+";
-static NSString * const DPLURLParameterPattern = @"([^/]+)";
+static NSString * const DPLURLParameterPattern = @"([^/&]+)";
 
 @interface DPLRouteMatcher ()
 
@@ -56,7 +56,9 @@ static NSString * const DPLURLParameterPattern = @"([^/]+)";
             modifiedRoute = [modifiedRoute stringByReplacingOccurrencesOfString:stringToReplace
                                                                      withString:DPLURLParameterPattern];
         }
-        
+      
+        modifiedRoute = [modifiedRoute stringByReplacingOccurrencesOfString:@"?"
+                                                                 withString:@"\\?"];
         modifiedRoute = [modifiedRoute stringByAppendingString:@"$"];
         _regex = [NSRegularExpression regularExpressionWithPattern:modifiedRoute
                                                            options:0
@@ -72,6 +74,9 @@ static NSString * const DPLURLParameterPattern = @"([^/]+)";
     DPLDeepLink *deepLink       = [[DPLDeepLink alloc] initWithURL:url];
     NSString *deepLinkString    = [NSString stringWithFormat:@"%@%@",
                                    deepLink.URL.host, deepLink.URL.path];
+    if(deepLink.URL.query.length > 0) {
+        deepLinkString = [deepLinkString stringByAppendingFormat:@"?%@", deepLink.URL.query];
+    }
     NSArray *matches            = [self.regex matchesInString:deepLinkString
                                                       options:0
                                                         range:NSMakeRange(0, deepLinkString.length)];
